@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: basic_gin_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-basic_gin}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-basic_gin}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: basic_gin_redis
+    command: ["redis-server","--appendonly","yes","--requirepass","${REDIS_PASS:-changeme}"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASS:-changeme}", "PING"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    image: migrate/migrate:4
+    container_name: basic_gin_migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_DSN: ${POSTGRES_DSN}
+    volumes:
+      - ./migrations:/migrations:ro
+    command: ["-path", "/migrations", "-database", "${POSTGRES_DSN}", "up"]
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: basic_gin_app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      POSTGRES_DSN: ${POSTGRES_DSN}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PASS: ${REDIS_PASS}
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
