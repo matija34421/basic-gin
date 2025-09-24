@@ -8,16 +8,9 @@ import (
 	"time"
 )
 
-type ClientMapper struct {
-}
-
-func NewClientMapper() *ClientMapper {
-	return &ClientMapper{}
-}
-
 const dateLayout = "2006-01-02"
 
-func (m *ClientMapper) ToResponse(c *model.Client) dto.ClientResponse {
+func ClientToResponse(c *model.Client) dto.ClientResponse {
 	return dto.ClientResponse{
 		ID:               c.ID,
 		FirstName:        c.FirstName,
@@ -29,15 +22,15 @@ func (m *ClientMapper) ToResponse(c *model.Client) dto.ClientResponse {
 	}
 }
 
-func (m *ClientMapper) ToResponseSlice(items []*model.Client) []dto.ClientResponse {
+func ClientsToResponseSlice(items []*model.Client) []dto.ClientResponse {
 	out := make([]dto.ClientResponse, 0, len(items))
 	for _, c := range items {
-		out = append(out, m.ToResponse(c))
+		out = append(out, ClientToResponse(c))
 	}
 	return out
 }
 
-func (m *ClientMapper) ToEntity(in dto.ClientCreate) (model.Client, error) {
+func ToClientFromCreate(in dto.ClientCreate) (model.Client, error) {
 	bd, err := time.Parse(dateLayout, strings.TrimSpace(in.BirthDate))
 	if err != nil {
 		return model.Client{}, fmt.Errorf("invalid birth_date (use YYYY-MM-DD): %w", err)
@@ -51,7 +44,7 @@ func (m *ClientMapper) ToEntity(in dto.ClientCreate) (model.Client, error) {
 	}, nil
 }
 
-func (m *ClientMapper) ToEntityFromUpdate(in dto.ClientUpdate) (model.Client, error) {
+func ToClientFromUpdate(in dto.ClientUpdate) (model.Client, error) {
 	if in.ID <= 0 {
 		return model.Client{}, fmt.Errorf("invalid id")
 	}

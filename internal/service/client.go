@@ -14,14 +14,12 @@ import (
 )
 
 type ClientService struct {
-	clientMapper     *mapper.ClientMapper
 	clientRepository repository.ClientRepository
 	cache            cache.Cache
 }
 
-func NewClientService(clientMapper *mapper.ClientMapper, clientRepository repository.ClientRepository, cache cache.Cache) *ClientService {
+func NewClientService(clientRepository repository.ClientRepository, cache cache.Cache) *ClientService {
 	return &ClientService{
-		clientMapper:     clientMapper,
 		clientRepository: clientRepository,
 		cache:            cache,
 	}
@@ -43,7 +41,7 @@ func (s *ClientService) GetAll(ctx context.Context) ([]dto.ClientResponse, error
 		return nil, fmt.Errorf("%v", err)
 	}
 
-	response := s.clientMapper.ToResponseSlice(clients)
+	response := mapper.ClientsToResponseSlice(clients)
 
 	if s.cache != nil {
 		if b, err := json.Marshal(response); err == nil {
@@ -73,7 +71,7 @@ func (s *ClientService) GetById(ctx context.Context, id int64) (*dto.ClientRespo
 		return nil, fmt.Errorf("%v", err)
 	}
 
-	response := s.clientMapper.ToResponse(client)
+	response := mapper.ClientToResponse(client)
 
 	if s.cache != nil {
 		if bytes, err := json.Marshal(response); err == nil {
@@ -91,7 +89,7 @@ func (s *ClientService) Save(ctx context.Context, in dto.ClientCreate) (*dto.Cli
 		return nil, fmt.Errorf("%w", validationErr)
 	}
 
-	client, err := s.clientMapper.ToEntity(in)
+	client, err := mapper.ToClientFromCreate(in)
 
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
@@ -103,7 +101,7 @@ func (s *ClientService) Save(ctx context.Context, in dto.ClientCreate) (*dto.Cli
 		return nil, fmt.Errorf("%w", createErr)
 	}
 
-	response := s.clientMapper.ToResponse(saved)
+	response := mapper.ClientToResponse(saved)
 
 	if s.cache != nil {
 		_ = s.cache.Del(ctx, s.keyClientsAll())
@@ -122,7 +120,7 @@ func (s *ClientService) Update(ctx context.Context, in dto.ClientUpdate) (*dto.C
 		return nil, fmt.Errorf("%w", validationErr)
 	}
 
-	client, err := s.clientMapper.ToEntityFromUpdate(in)
+	client, err := mapper.ToClientFromUpdate(in)
 
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
@@ -134,7 +132,7 @@ func (s *ClientService) Update(ctx context.Context, in dto.ClientUpdate) (*dto.C
 		return nil, fmt.Errorf("%w", createErr)
 	}
 
-	response := s.clientMapper.ToResponse(saved)
+	response := mapper.ClientToResponse(saved)
 
 	if s.cache != nil {
 		_ = s.cache.Del(ctx, s.keyClientsAll())

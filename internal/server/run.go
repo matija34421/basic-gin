@@ -12,7 +12,6 @@ import (
 	"basic-gin/internal/config"
 	"basic-gin/internal/db"
 	"basic-gin/internal/handler"
-	"basic-gin/internal/mapper"
 	"basic-gin/internal/repository"
 	"basic-gin/internal/service"
 )
@@ -46,12 +45,10 @@ func Run(ctx context.Context) error {
 	}
 
 	client_repo := repository.NewClientRepository(pool)
-	client_mapper := mapper.NewClientMapper()
-	client_service := service.NewClientService(client_mapper, *client_repo, c)
+	client_service := service.NewClientService(*client_repo, c)
 
 	account_repo := repository.NewAccountRepository(pool)
-	account_mapper := mapper.NewAccountMapper()
-	account_service := service.NewAccountService(*account_mapper, account_repo, client_service, c)
+	account_service := service.NewAccountService(account_repo, client_service, c)
 
 	deps := handler.NewDependencies(client_service, account_service)
 

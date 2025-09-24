@@ -5,11 +5,7 @@ import (
 	"basic-gin/internal/model"
 )
 
-type AccountMapper struct{}
-
-func NewAccountMapper() *AccountMapper { return &AccountMapper{} }
-
-func (m *AccountMapper) ToResponse(a *model.Account) *dto.AccountResponse {
+func AccountToResponse(a *model.Account) *dto.AccountResponse {
 	return &dto.AccountResponse{
 		ID:            a.ID,
 		ClientID:      a.ClientId,
@@ -19,7 +15,7 @@ func (m *AccountMapper) ToResponse(a *model.Account) *dto.AccountResponse {
 	}
 }
 
-func (m *AccountMapper) ToEntityFromUpdate(existing model.Account, in dto.AccountUpdate) model.Account {
+func ToAccountFromUpdate(existing model.Account, in dto.AccountUpdate) model.Account {
 	out := existing
 
 	if in.ClientID != nil {
@@ -34,13 +30,13 @@ func (m *AccountMapper) ToEntityFromUpdate(existing model.Account, in dto.Accoun
 	return out
 }
 
-func (m *AccountMapper) ToResponseSlice(items []*model.Account) []*dto.AccountResponse {
+func AccountsToResponseSlice(items []*model.Account) []*dto.AccountResponse {
 	if len(items) == 0 {
 		return []*dto.AccountResponse{}
 	}
 	res := make([]*dto.AccountResponse, 0, len(items))
 	for _, a := range items {
-		res = append(res, m.ToResponse(a))
+		res = append(res, AccountToResponse(a))
 	}
 	return res
 }

@@ -16,15 +16,13 @@ import (
 )
 
 type AccountService struct {
-	accountMapper     mapper.AccountMapper
 	accountRepository repository.AccountRepository
 	clientService     ClientService
 	cache             cache.Cache
 }
 
-func NewAccountService(accountMapper mapper.AccountMapper, accountRepository *repository.AccountRepository, clientService *ClientService, cache cache.Cache) *AccountService {
+func NewAccountService(accountRepository *repository.AccountRepository, clientService *ClientService, cache cache.Cache) *AccountService {
 	return &AccountService{
-		accountMapper:     accountMapper,
 		accountRepository: *accountRepository,
 		clientService:     *clientService,
 		cache:             cache,
@@ -51,7 +49,7 @@ func (s *AccountService) GetById(ctx context.Context, id int) (*dto.AccountRespo
 		return nil, fmt.Errorf("%v", err)
 	}
 
-	response := s.accountMapper.ToResponse(account)
+	response := mapper.AccountToResponse(account)
 
 	if s.cache != nil {
 		if bytes, err := json.Marshal(response); err == nil {
@@ -87,7 +85,7 @@ func (s *AccountService) GetByClientId(ctx context.Context, id int) ([]*dto.Acco
 		return nil, fmt.Errorf("get accounts by client id: %w", err)
 	}
 
-	resp := s.accountMapper.ToResponseSlice(accounts)
+	resp := mapper.AccountsToResponseSlice(accounts)
 
 	if s.cache != nil {
 		if b, err := json.Marshal(resp); err == nil {
@@ -134,7 +132,7 @@ func (s *AccountService) Save(ctx context.Context, clientId int) (dto.AccountRes
 		return dto.AccountResponse{}, fmt.Errorf("could not create account after retries")
 	}
 
-	respPtr := s.accountMapper.ToResponse(saved)
+	respPtr := mapper.AccountToResponse(saved)
 	resp := *respPtr
 
 	if s.cache != nil {
@@ -176,12 +174,12 @@ func (s *AccountService) Deposit(ctx context.Context, id int, amount float64) (*
 	if s.cache != nil {
 		_ = s.cache.Del(ctx, s.keyAccount(updated.ID))
 		_ = s.cache.Del(ctx, s.keyAccountsByClient(updated.ClientId))
-		if b, mErr := json.Marshal(s.accountMapper.ToResponse(updated)); mErr == nil {
+		if b, mErr := json.Marshal(mapper.AccountToResponse(updated)); mErr == nil {
 			_ = s.cache.Set(ctx, s.keyAccount(updated.ID), b, 5*time.Minute)
 		}
 	}
 
-	return s.accountMapper.ToResponse(updated), nil
+	return mapper.AccountToResponse(updated), nil
 }
 
 func (s *AccountService) Withdraw(ctx context.Context, id int, amount float64) (*dto.AccountResponse, error) {
@@ -210,12 +208,12 @@ func (s *AccountService) Withdraw(ctx context.Context, id int, amount float64) (
 	if s.cache != nil {
 		_ = s.cache.Del(ctx, s.keyAccount(updated.ID))
 		_ = s.cache.Del(ctx, s.keyAccountsByClient(updated.ClientId))
-		if b, mErr := json.Marshal(s.accountMapper.ToResponse(updated)); mErr == nil {
+		if b, mErr := json.Marshal(mapper.AccountToResponse(updated)); mErr == nil {
 			_ = s.cache.Set(ctx, s.keyAccount(updated.ID), b, 5*time.Minute)
 		}
 	}
 
-	return s.accountMapper.ToResponse(updated), nil
+	return mapper.AccountToResponse(updated), nil
 }
 
 func generateAccountNumber(n int) string {
