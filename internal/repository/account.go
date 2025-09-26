@@ -87,22 +87,33 @@ func (r *AccountRepository) CreateAccount(ctx context.Context, account *model.Ac
 	return &savedAccount, nil
 }
 
-func (r *AccountRepository) UpdateBalanceDelta(ctx context.Context, tx pgx.Tx, accountID int, delta float64) (*model.Account, error) {
-	var acc model.Account
-	err := tx.QueryRow(ctx, `
-        UPDATE accounts
-        SET balance = balance + $2
-        WHERE id = $1 AND balance + $2 >= 0
-        RETURNING id, account_number, balance, client_id, created_at
-    `, accountID, delta).Scan(&acc.ID, &acc.AccountNumber, &acc.Balance, &acc.ClientId, &acc.CreatedAt)
-
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("insufficient funds or account not found")
-		}
-		return nil, fmt.Errorf("update balance: %w", err)
+func (r *AccountRepository) GetByIdTx(ctx context.Context, tx pgx.Tx, id int, forUpdate bool) (*model.Account, error) {
+	q := `
+		SELECT id, account_number, balance, client_id, created_at
+		FROM accounts WHERE id = $1`
+	if forUpdate {
+		q += " FOR UPDATE"
 	}
-	return &acc, nil
+	var a model.Account
+	if err := tx.QueryRow(ctx, q, id).
+		Scan(&a.ID, &a.AccountNumber, &a.Balance, &a.ClientId, &a.CreatedAt); err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (r *AccountRepository) UpdateBalanceDeltaTx(ctx context.Context, tx pgx.Tx, id int, delta float64) (*model.Account, error) {
+	var a model.Account
+	if err := tx.QueryRow(ctx, `
+		UPDATE accounts
+		SET balance = balance + $1
+		WHERE id = $2
+		RETURNING id, client_id, account_number, balance, created_at
+	`, delta, id).
+		Scan(&a.ID, &a.ClientId, &a.AccountNumber, &a.Balance, &a.CreatedAt); err != nil {
+		return nil, err
+	}
+	return &a, nil
 }
 
 func (r *AccountRepository) Pool() *pgxpool.Pool { return r.pool }

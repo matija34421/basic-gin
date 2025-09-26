@@ -50,7 +50,10 @@ func Run(ctx context.Context) error {
 	account_repo := repository.NewAccountRepository(pool)
 	account_service := service.NewAccountService(account_repo, client_service, c)
 
-	deps := handler.NewDependencies(client_service, account_service)
+	transaction_repo := repository.NewTransactionRepository(pool)
+	transaction_service := service.NewTransactionService(transaction_repo, account_repo)
+
+	deps := handler.NewDependencies(client_service, account_service, transaction_service)
 
 	router := newRouter(deps)
 
@@ -59,7 +62,7 @@ func Run(ctx context.Context) error {
 		Handler:           router,
 		ReadTimeout:       5 * time.Second,
 		ReadHeaderTimeout: 3 * time.Second,
-		WriteTimeout:      10 * time.Second,
+		WriteTimeout:      20 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
 

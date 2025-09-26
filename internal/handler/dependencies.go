@@ -5,11 +5,12 @@ import (
 )
 
 type Dependencies struct {
-	AccountHandler *AccountHandler
-	ClientHandler  *ClientHandler
+	AccountHandler     *AccountHandler
+	ClientHandler      *ClientHandler
+	TransactionHandler *TransactionHandler
 }
 
-func NewDependencies(cs *service.ClientService, as *service.AccountService) *Dependencies {
+func NewDependencies(cs *service.ClientService, as *service.AccountService, ts *service.TransactionService) *Dependencies {
 	var ch *ClientHandler
 	if cs != nil {
 		ch = NewClientHandler(cs)
@@ -18,8 +19,13 @@ func NewDependencies(cs *service.ClientService, as *service.AccountService) *Dep
 	if as != nil {
 		ah = NewAccountHandler(as)
 	}
+	var th *TransactionHandler
+	if ts != nil {
+		th = NewTransactionHandler(ts)
+	}
 	return &Dependencies{
-		ClientHandler:  ch,
-		AccountHandler: ah,
+		ClientHandler:      ch,
+		AccountHandler:     ah,
+		TransactionHandler: th,
 	}
 }

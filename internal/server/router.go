@@ -29,7 +29,7 @@ func newRouter(h *handler.Dependencies) *gin.Engine {
 
 	// clients
 	if h == nil || h.ClientHandler == nil {
-		log.Println("WARN: client handler is nil – routes will be missing")
+		log.Println("WARN: client handler is nil - routes will be missing")
 	} else {
 		clients := v1.Group("/clients")
 		h.ClientHandler.Register(clients)
@@ -37,10 +37,18 @@ func newRouter(h *handler.Dependencies) *gin.Engine {
 
 	// accounts
 	if h == nil || h.AccountHandler == nil {
-		log.Println("WARN: account handler is nil – routes will be missing")
+		log.Println("WARN: account handler is nil - routes will be missing")
 	} else {
 		accounts := v1.Group("/accounts")
 		h.AccountHandler.Register(accounts)
+	}
+
+	//transactions
+	if h == nil || h.TransactionHandler == nil {
+		log.Println("WARN: client handler is nil - routes will be missing")
+	} else {
+		transactions := v1.Group("/transactions")
+		h.TransactionHandler.Register(transactions)
 	}
 
 	r.NoRoute(func(c *gin.Context) {

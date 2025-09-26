@@ -143,6 +143,9 @@ func (s *AccountService) Save(ctx context.Context, clientId int) (dto.AccountRes
 		}
 	}
 
+	//simulacija KYC
+	time.Sleep(10 * time.Second)
+
 	return resp, nil
 }
 
@@ -162,7 +165,7 @@ func (s *AccountService) Deposit(ctx context.Context, id int, amount float64) (*
 		_ = tx.Rollback(ctx)
 	}()
 
-	updated, err := s.accountRepository.UpdateBalanceDelta(ctx, tx, id, amount)
+	updated, err := s.accountRepository.UpdateBalanceDeltaTx(ctx, tx, id, amount)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +199,7 @@ func (s *AccountService) Withdraw(ctx context.Context, id int, amount float64) (
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	updated, err := s.accountRepository.UpdateBalanceDelta(ctx, tx, id, -amount)
+	updated, err := s.accountRepository.UpdateBalanceDeltaTx(ctx, tx, id, -amount)
 	if err != nil {
 		return nil, err
 	}
