@@ -8,20 +8,25 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 )
 
 type TransactionService struct {
 	transactionRepository repository.TransactionRepository
 	accountRepository     repository.AccountRepository
+	accountService        AccountService
 }
 
 func NewTransactionService(
 	transactionRepository *repository.TransactionRepository,
 	accountRepository *repository.AccountRepository,
+	accountService AccountService,
 ) *TransactionService {
 	return &TransactionService{
 		transactionRepository: *transactionRepository,
 		accountRepository:     *accountRepository,
+		accountService:        accountService,
 	}
 }
 
@@ -32,6 +37,39 @@ func (s *TransactionService) CreateTransfer(ctx context.Context, in dto.Transact
 	if in.Amount <= 0 {
 		return nil, errors.New("amount must be positive")
 	}
+
+	g, ctx := errgroup.WithContext(ctx)
+
+	var preFrom, preTo *dto.AccountResponse
+
+	g.Go(func() error {
+		acc, err := s.accountService.GetById(ctx, in.ToAccountID)
+		if err != nil {
+			return err
+		}
+		preFrom = acc
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	g.Go(func() error {
+		acc, err := s.accountService.GetById(ctx, in.FromAccountID)
+		if err != nil {
+			return err
+		}
+		preTo = acc
+		return nil
+	})
+
+	if preFrom.Balance < in.Amount {
+		return nil, errors.New("insufficient funds")
+	}
+
+	//da izbegnem unused za preTo
+	_ = preTo
 
 	tx, err := s.accountRepository.Pool().Begin(ctx)
 	if err != nil {

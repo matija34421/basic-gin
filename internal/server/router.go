@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"basic-gin/internal/handler"
@@ -14,6 +15,12 @@ import (
 func newRouter(h *handler.Dependencies) *gin.Engine {
 	r := gin.New()
 
+	secret := os.Getenv("HMAC_SECRET")
+	r.Use(middleware.RequireHMAC(middleware.HMACConfig{
+		Secret:      secret,
+		AllowedSkew: 5 * time.Minute,
+		SkipPaths:   []string{"/healthz"},
+	}))
 	r.Use(middleware.RequestID())
 	r.Use(gin.Recovery())
 

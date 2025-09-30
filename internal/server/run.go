@@ -51,7 +51,7 @@ func Run(ctx context.Context) error {
 	account_service := service.NewAccountService(account_repo, client_service, c)
 
 	transaction_repo := repository.NewTransactionRepository(pool)
-	transaction_service := service.NewTransactionService(transaction_repo, account_repo)
+	transaction_service := service.NewTransactionService(transaction_repo, account_repo, *account_service)
 
 	deps := handler.NewDependencies(client_service, account_service, transaction_service)
 
