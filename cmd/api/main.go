@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	_ "basic-gin/cmd/api/docs"
 	"basic-gin/internal/server"
 )
 

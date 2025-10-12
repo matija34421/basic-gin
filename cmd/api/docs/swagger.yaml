@@ -1,0 +1,413 @@
+definitions:
+  dto.AccountResponse:
+    properties:
+      account_number:
+        type: string
+      balance:
+        type: number
+      client_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+    type: object
+  dto.ClientCreate:
+    properties:
+      birth_date:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      residence_address:
+        type: string
+    type: object
+  dto.ClientResponse:
+    properties:
+      birth_date:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      residence_address:
+        type: string
+    type: object
+  dto.ClientUpdate:
+    properties:
+      birth_date:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      residence_address:
+        type: string
+    type: object
+  dto.TransactionCreate:
+    properties:
+      amount:
+        type: number
+      from_account_id:
+        type: integer
+      to_account_id:
+        type: integer
+    required:
+    - amount
+    - from_account_id
+    - to_account_id
+    type: object
+  dto.TransactionResponse:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      from_account_id:
+        type: integer
+      id:
+        type: string
+      to_account_id:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /accounts:
+    get:
+      parameters:
+      - description: ID klijenta
+        in: query
+        name: client_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AccountResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - HmacSignature: []
+      summary: Računi za klijenta
+      tags:
+      - accounts
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID klijenta
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.AccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - HmacSignature: []
+      summary: Kreiraj račun
+      tags:
+      - accounts
+  /accounts/{id}:
+    get:
+      parameters:
+      - description: ID računa
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AccountResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - HmacSignature: []
+      summary: Dohvati račun
+      tags:
+      - accounts
+  /accounts/{id}/deposit:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID računa
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Iznos
+        in: body
+        name: amount
+        required: true
+        schema:
+          type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - HmacSignature: []
+      summary: Uplata na račun
+      tags:
+      - accounts
+  /accounts/{id}/withdraw:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID računa
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Iznos
+        in: body
+        name: amount
+        required: true
+        schema:
+          type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - HmacSignature: []
+      summary: Isplata sa računa
+      tags:
+      - accounts
+  /clients:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ClientResponse'
+            type: array
+      security:
+      - HmacSignature: []
+      summary: Lista klijenata
+      tags:
+      - clients
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Podaci
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClientCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClientResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - HmacSignature: []
+      summary: Kreiraj klijenta
+      tags:
+      - clients
+  /clients/{id}:
+    get:
+      parameters:
+      - description: ID klijenta
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClientResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - HmacSignature: []
+      summary: Detalji klijenta
+      tags:
+      - clients
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID klijenta
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Podaci
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ClientUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ClientResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - HmacSignature: []
+      summary: Izmeni klijenta
+      tags:
+      - clients
+  /transactions:
+    post:
+      consumes:
+      - application/json
+      description: Kreira transfer između dva računa i vraća snimljenu transakciju.
+      parameters:
+      - description: Podaci o transferu
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TransactionCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Uspešno kreirano
+          schema:
+            $ref: '#/definitions/dto.TransactionResponse'
+        "400":
+          description: 'Neispravan JSON ulaz; npr: {\"error\":\"invalid character...\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - HmacSignature: []
+      summary: Kreiraj transakciju (transfer)
+      tags:
+      - transactions
+  /transactions/by-account/{accountID}:
+    get:
+      description: Lista transakcija za dati račun uz paginaciju (limit/offset).
+      parameters:
+      - description: ID računa (pozitivni integer)
+        in: path
+        name: accountID
+        required: true
+        type: integer
+      - default: 50
+        description: Broj po stranici
+        in: query
+        maximum: 200
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Pomak (offset)
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.TransactionResponse'
+            type: array
+        "400":
+          description: 'Neispravan accountID; npr: {\"error\":\"invalid account id\"}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - HmacSignature: []
+      summary: Transakcije po računu
+      tags:
+      - transactions
+swagger: "2.0"

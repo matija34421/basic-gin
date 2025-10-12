@@ -33,6 +33,14 @@ type amountReq struct {
 	Amount float64 `json:"amount" binding:"required,gt=0"`
 }
 
+// @Summary      Dohvati račun
+// @Tags         accounts
+// @Produce      json
+// @Param        id   path   int  true  "ID računa"
+// @Success      200  {object}  dto.AccountResponse
+// @Failure      404  {object}  map[string]string
+// @Router       /accounts/{id} [get]
+// @Security 	 HmacSignature
 func (h *AccountHandler) GetByID(c *gin.Context) {
 	id, err := parseInt(c.Param("id"))
 	if err != nil || id <= 0 {
@@ -52,6 +60,14 @@ func (h *AccountHandler) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// @Summary      Računi za klijenta
+// @Tags         accounts
+// @Produce      json
+// @Param        client_id  query  int  true  "ID klijenta"
+// @Success      200  {array}   dto.AccountResponse
+// @Failure      400  {object}  map[string]string
+// @Router       /accounts [get]
+// @Security 	 HmacSignature
 func (h *AccountHandler) ListByClient(c *gin.Context) {
 	q := c.Query("client_id")
 	if q == "" {
@@ -76,6 +92,15 @@ func (h *AccountHandler) ListByClient(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+// @Summary      Kreiraj račun
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        id    path  int                  true  "ID klijenta"
+// @Success      201   {object} dto.AccountResponse
+// @Failure      400   {object} map[string]string
+// @Router       /accounts [post]
+// @Security 	 HmacSignature
 func (h *AccountHandler) Create(c *gin.Context) {
 	var in accountCreateReq
 	if err := c.ShouldBindJSON(&in); err != nil {
@@ -95,6 +120,16 @@ func (h *AccountHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, out)
 }
 
+// @Summary      Uplata na račun
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        id    path  int                  true  "ID računa"
+// @Param        amount  body  float64    		  true  "Iznos"
+// @Success      200   {object} dto.AccountResponse
+// @Failure      400   {object} map[string]string
+// @Router       /accounts/{id}/deposit [post]
+// @Security 	 HmacSignature
 func (h *AccountHandler) Deposit(c *gin.Context) {
 	id, err := parseInt(c.Param("id"))
 	if err != nil || id <= 0 {
@@ -116,6 +151,16 @@ func (h *AccountHandler) Deposit(c *gin.Context) {
 	c.JSON(http.StatusOK, out)
 }
 
+// @Summary      Isplata sa računa
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        id    path  int                  true  "ID računa"
+// @Param        amount  body  float64    		  true  "Iznos"
+// @Success      200   {object} dto.AccountResponse
+// @Failure      400   {object} map[string]string
+// @Router       /accounts/{id}/withdraw [post]
+// @Security 	 HmacSignature
 func (h *AccountHandler) Withdraw(c *gin.Context) {
 	id, err := parseInt(c.Param("id"))
 	if err != nil || id <= 0 {

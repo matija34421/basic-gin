@@ -58,6 +58,7 @@ services:
       POSTGRES_DSN: ${POSTGRES_DSN}
       REDIS_ADDR: ${REDIS_ADDR}
       REDIS_PASS: ${REDIS_PASS}
+      HMAC_SECRET: ${HMAC_SECRET}
     ports:
       - "8080:8080"
     restart: unless-stopped
